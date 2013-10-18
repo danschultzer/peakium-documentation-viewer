@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * Install script.
+ *
+ * @package		Peakium Documentation Viewer
+ * @author		Dan Schultzer <dan@dreamconception.com>
+ * @license		http://www.opensource.org/licenses/mit-license.php
+ */
+
+if(PHP_SAPI !== 'cli') die();
+
+require(realpath(__DIR__) . '/../bootstrap.php');
+
+// Will download or upgrade all documentation defined in config.json
+try
+{
+	$docs_path = ROOT_DIR . '/docs/';
+	$wrapper = new \GitWrapper\GitWrapper();
+
+	 print colorize("Going to install or update any documentation libraries.\n\n", false, false);
+	 foreach (config()->documentation as $directory => $url)
+	 {
+		print colorize(sprintf("Will download \"%s\" from \"%s\".\n", $directory, $url), 'green', true);
+
+		$format = pathinfo($url, PATHINFO_EXTENSION);
+		switch($format):
+			case 'git':
+				$git = $wrapper->workingCopy($docs_path . $directory);
+				if (!$git->isCloned())
+				{
+					$git->clone($url);
+				}
+				else
+				{
+					$git->pull('origin', 'master');
+				}
+				$git->checkout('master', array('force' => true));
+				print $git->getOutput();
+				break;
+
+			case 'zip':
+			case 'tar':
+			case 'gz':
+			case 'bz2':
+				$archive_path = $docs_path . $directory . '.' . pathinfo($url, PATHINFO_EXTENSION);
+				$archive_dir = $docs_path . $directory;
+
+				// If file exists, make sure that it is different
+				if (file_exists($archive_path) && md5_file($archive_path) == md5_file($url))
+				{
+					print colorize(sprintf("Archive is up-to-date.\n", $archive_path), false, false);
+					break;
+				}
+
+				// Download and save the file
+				print colorize(sprintf("Downloading archive to \"%s\"...\n", $archive_path), false, false);
+				$loaded = file_put_contents($archive_path, fopen($url, 'r'));
+
+				// Uncompress
+				if ($loaded)
+				{
+					// Remove old directory
+					if (is_dir($archive_dir))
+					{
+						if (!delete_dir($archive_dir))
+						{
+							print colorize("Could not delete old directory \"$archive_dir\".\n", 'red', true);
+							breal;
+						}
+					}
+
+					// Create new directory
+					if (!mkdir($archive_dir))
+					{
+						print colorize("Could not create directory \"$archive_dir\".\n", 'red', true);
+						break;
+					}
+
+					print colorize("Extracting file...\n", false, false);
+					$zippy = \Alchemy\Zippy\Zippy::load();
+					$archive = $zippy->open($archive_path);
+					$archive->extract($archive_dir);
+
+					// We move the files if there is a single subdirectory
+					$files = scandir($archive_dir);
+					if (count($files) == 3 && is_dir($archive_dir . '/' . $files[2]))
+					{
+						print colorize("Moving files...\n", false, false);
+						$subdir = $archive_dir . '/' . $files[2];
+						foreach(scandir($subdir) as $file)
+						{
+							if ($file == '.' || $file == '..') continue;
+							rename($subdir . '/' . $file, $archive_dir . '/' . $file);
+						}
+						rmdir($subdir);
+					}
+				}
+				else
+				{
+					print colorize("File could not be downloaded.\n", 'red', true);
+				}
+				break;
+
+			default:
+				print colorize(sprintf("No known handling of format \"%s\"\n", $format), 'red', true);
+		endswitch;
+
+		print "\n";
+	 }
+}
+catch (Exception $e)
+{
+	 print colorize("{$e->getMessage()} [{$e->getFile()}] ({$e->getLine()})\n", 'red', true);
+}
+
+/**
+ * Simple colorizing method for CLI.
+ */
+function colorize($text, $color, $bold = FALSE)
+{
+	// Standard CLI colors
+	$colors = array_flip(array(30 => 'gray', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white', 'black'));
+
+	// Escape string with color information
+	return"\033[" . ($bold ? '1' : '0') . ';' . $colors[$color] . "m$text\033[0m";
+}
+
+/**
+ * Delete directory that contains files.
+ *
+ * @link http://stackoverflow.com/a/8688278
+ */
+function delete_dir($path)
+{
+	return is_file($path) ?
+				@unlink($path) :
+				array_map(__FUNCTION__, glob($path.'/*')) == @rmdir($path);
+}

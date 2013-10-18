@@ -1,0 +1,30 @@
+{
+	"layout-dir": "default",
+	"title": "Peakium Documentation",
+	"pages": {
+		"index": {
+			"title": "Home",
+			"section": "Documentation",
+			"format": "view",
+			"reference": "pages/index"
+		},
+		"examples": {
+			"title": "Examples",
+			"section": "Documentation",
+			"format": "markdown",
+			"reference": "peakium-examples",
+			"depth": 2
+		},
+		"api": {
+			"title": "API",
+			"section": "References",
+			"format": "markdown",
+			"reference": "peakium-api"
+		}
+	},
+	"documentation": {
+		"peakium-api": "git://github.com/peakium/peakium-api.git",
+		"peakium-examples": "git://github.com/peakium/peakium-examples.git",
+		"peakium-zip-test": "https://github.com/peakium/peakium-api/archive/master.zip"
+	}
+}

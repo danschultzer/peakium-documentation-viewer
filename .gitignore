@@ -1,0 +1,20 @@
+# Linux
+.*
+!.gitignore
+!.htaccess
+*~
+ 
+# OS X
+.DS_Store
+# Thumbnails
+._*
+ 
+# Windows
+Thumbs.db
+Desktop.ini
+ 
+# Peakium Documentation Viewer
+vendor
+docs/*
+!docs/README.md
+config.json
