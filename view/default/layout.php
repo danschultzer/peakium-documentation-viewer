@@ -28,44 +28,46 @@
 	echo $header;
 ?>
 
-	<div id="container">
-	
-		<div class="main-sidebar">
-			<div class="box box-list">
+<div id="container">
+
+	<div class="main-sidebar">
+		<div class="box box-list">
 <?php
-	$build_menu = function($items, $class = "") use(&$build_menu, &$paths) {
-		$text = '<ul class="' . $class . '">';
+	$build_menu = function($items, $class = "", $tabs = 0) use(&$build_menu, &$paths) {
+		$prepend = "\n\r" . str_repeat("\t", $tabs);
+		$text = '<ul' . ($class ? " class=\"$class\"" : "") . '>';
 		foreach ($items as $item_uri => $item)
 		{
-			$text .= '<li' . ($paths[0] == $item_uri ? ' class="active"' : '') . '><a href="' . ($item_uri{0} != '#' ? ROOT_URI : '') . $item_uri . '">' . $item->name . '</a>';
+			$text .= $prepend . "\t<li" . ($paths[0] == $item_uri ? ' class="active"' : '') . '>' . $prepend . "\t\t<a href=\"" . ($item_uri{0} != '#' ? ROOT_URI : '') . $item_uri . '">' . $item->name . '</a>';
 
 			if (count($item->items))
-				$text .= $build_menu($item->items, 'collapsed');
+				$text .= $build_menu($item->items, 'collapsed', $tabs + 2);
 
-			$text .= '</li>';
+			$text .= $prepend . "\t</li>";
 		}
-		$text .= '</ul>';
+		$text .= $prepend . '</ul>';
 
 		return $text;
 	};
 
 	foreach ($menu_sections as $section_name => $section_items)
 	{
-		echo '<h4>' . $section_name . '</h4>';
-		echo $build_menu($section_items);
-		echo '</ul>';
+		echo '
+			<h4>' . $section_name . '</h4>';
+		echo $build_menu($section_items, "", 3);
 	}
 ?>
-			</div>
+
 		</div>
-		
-		<div class="content">
+	</div>
+	
+	<div class="content">
 			
 <?php echo $content; ?>
 			
-		</div>
-	
 	</div>
+
+</div>
 
 <?php
 	echo new \View('footer');
