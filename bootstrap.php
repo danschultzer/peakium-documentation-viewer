@@ -84,9 +84,11 @@ class DocumentationController extends \Controller {}
  */
 function camel_to_snake_case($string)
 {
-	return strtolower(preg_replace(
-		'/(^|[a-z])([A-Z])/e', 
-		'strlen("\\1") ? "\\1_\\2" : "\\2"',
+	return strtolower(preg_replace_callback(
+		'/(^|[a-z])([A-Z])/', 
+		function($matches) {
+			return strlen($matches[1]) ? "$matches[1]_$matches[2]" : $matches[2];
+		},
 		$string 
 	)); 
 }
@@ -96,11 +98,13 @@ function camel_to_snake_case($string)
  */
 function snake_to_camel_case($string)
 {
-	return preg_replace(
-		'/(^|[a-z]_)([a-z])/e', 
-		'"\\1" . strtoupper("\\2")',
+	return preg_replace_callback(
+		'/(^|[a-z]_)([a-z])/', 
+		function($matches){
+			return $matches[1] . strtoupper($matches[2]);
+		},
 		$string 
-	); 
+	);
 }
 
 /**
