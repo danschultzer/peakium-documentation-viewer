@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Export script to generate HTML.
+ *
+ * @package		Peakium Documentation Viewer
+ * @author		Dan Schultzer <dan@dreamconception.com>
+ * @license		http://www.opensource.org/licenses/mit-license.php
+ */
+
+if(PHP_SAPI !== 'cli') die();
+
+require(realpath(__DIR__) . '/../bootstrap.php');
+
+// We'll try to export all documents to HMTL
+try
+{
+	$export_dir = ROOT_DIR . '/public/export';
+
+	if (file_exists($export_dir)) delete_dir($export_dir);
+
+	if (!mkdir($export_dir))
+	{
+		print colorize("Could not create directory \"$export_dir\".\n", 'red', true);
+		return false;
+	}
+
+	$pages = array('/');
+	foreach(config()->pages as $uri => $page) $pages[] = $uri;
+
+	foreach($pages as $uri)
+	{
+		ob_start();
+		handle_request($uri);
+		$filename = ($uri == '/' ? 'index' : $uri) . '.html';
+		$export_file = $export_dir . '/' . $filename;
+		$content = ob_get_clean();
+		$loaded = file_put_contents($export_file, $content);
+		print colorize(sprintf("File \"%s\" created.\n", $export_file), false, false);
+	}
+
+	print colorize(sprintf("\nDocumentation has been exported to \"%s\" successfully.\n", $export_dir), 'green', false);
+}
+catch (Exception $e)
+{
+	 print colorize("{$e->getMessage()} [{$e->getFile()}] ({$e->getLine()})\n", 'red', true);
+}

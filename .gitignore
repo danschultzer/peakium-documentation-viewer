@@ -16,5 +16,6 @@ Desktop.ini
 # Peakium Documentation Viewer
 vendor
 docs/*
+public/export
 !docs/README.md
 config.json

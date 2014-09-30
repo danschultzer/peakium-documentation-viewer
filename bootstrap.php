@@ -34,8 +34,8 @@ require(ROOT_DIR . 'vendor/autoload.php');
 /**
  * Handle incoming HTTP requests.
  */
-function handle_request(){
-	$uri = $_SERVER['REQUEST_URI'];
+function handle_request($uri = null) {
+	if ($uri == null) $uri = $_SERVER['REQUEST_URI'];
 
 	// Remove relative path from URI
 	if (ROOT_URI == substr($uri, 0, strlen(ROOT_URI)))
@@ -174,3 +174,31 @@ function config()
 
 // Set view directory
 \View::$directory = ROOT_DIR . 'view/' . (config()->{'layout-dir'} ? config()->{'layout-dir'} . '/' : 'default');
+
+
+/**
+ * Simple colorizing method for CLI.
+ */
+function colorize($text, $color, $bold = FALSE)
+{
+	// Standard CLI colors
+	$colors = array_flip(array(30 => 'gray', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white', 'black'));
+
+	$color_code = 0;
+	if (isset($colors[$color])) $color_code = $colors[$color];
+
+	// Escape string with color information
+	return"\033[" . ($bold ? '1' : '0') . ';' . $color_code . "m$text\033[0m";
+}
+
+/**
+ * Delete directory that contains files.
+ *
+ * @link http://stackoverflow.com/a/8688278
+ */
+function delete_dir($path)
+{
+	return is_file($path) ?
+				@unlink($path) :
+				array_map(__FUNCTION__, glob($path.'/*')) == @rmdir($path);
+}
