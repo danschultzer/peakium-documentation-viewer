@@ -152,10 +152,6 @@ function error_handler($code, $error, $file = 0, $line = 0)
 	return TRUE;
 }
 
-// Enable global error handling
-register_shutdown_function('fatal');
-set_error_handler('error_handler');
-
 /**
  * Load configuration file into object.
  */
@@ -171,10 +167,6 @@ function config()
 
 	return $config;
 }
-
-// Set view directory
-\View::$directory = ROOT_DIR . 'view/' . (config()->{'layout-dir'} ? config()->{'layout-dir'} . '/' : 'default');
-
 
 /**
  * Simple colorizing method for CLI.
@@ -202,3 +194,11 @@ function delete_dir($path)
 				@unlink($path) :
 				array_map(__FUNCTION__, glob($path.'/*')) == @rmdir($path);
 }
+
+
+// Set view directory
+\View::$directory = ROOT_DIR . 'view/' . (config()->{'layout-dir'} ? config()->{'layout-dir'} . '/' : 'default');
+
+// Enable global error handling
+register_shutdown_function('fatal');
+set_error_handler('error_handler');
