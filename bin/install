@@ -102,6 +102,11 @@ try
 				}
 				break;
 
+			case '':
+				$dir_path = $docs_path . $url;
+
+				if (is_dir($dir_path)) break;
+
 			default:
 				print colorize(sprintf("No known handling of format \"%s\"\n", $format), 'red', true);
 		endswitch;
