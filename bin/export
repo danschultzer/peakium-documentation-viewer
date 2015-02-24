@@ -25,8 +25,11 @@ try
 		return false;
 	}
 
-	$pages = array('/');
-	foreach(config()->pages as $uri => $page) $pages[] = $uri;
+	$pages = array();
+	foreach(config()->pages as $uri => $page)
+	{
+		if($page->format != "link") $pages[] = $uri;
+	}
 
 	foreach($pages as $uri)
 	{
